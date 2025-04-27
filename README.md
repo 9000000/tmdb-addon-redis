@@ -56,7 +56,6 @@ For detailed instructions on hosting your own instance, check our [Self-Hosting 
 docker run -d \
   --name tmdb-addon \
   -p 1337:1337 \
-  -e MONGODB_URI=your_mongodb_uri \
   -e FANART_API=your_fanart_key \
   -e TMDB_API=your_tmdb_key \
   -e HOST_NAME=http://your_domain:1337 \
@@ -73,8 +72,6 @@ services:
     ports:
       - "1337:1337"
     environment:
-      - MONGODB_URI=your_mongodb_uri
-      - MONGODB_METRICS=your_mongodb_uri
       - FANART_API=your_fanart_key
       - TMDB_API=your_tmdb_key
       - HOST_NAME=http://localhost:1337
