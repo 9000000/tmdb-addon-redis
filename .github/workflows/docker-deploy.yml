@@ -51,7 +51,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build and push Docker image to both GHCR and Docker Hub
-      - name: Build and push Docker image
+      - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
