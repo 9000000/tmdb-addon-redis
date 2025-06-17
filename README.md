@@ -59,7 +59,9 @@ docker run -d \
   -e FANART_API=your_fanart_key \
   -e TMDB_API=your_tmdb_key \
   -e HOST_NAME=http://your_domain:1337 \
-  ghcr.io/9000000/tmdb-addon-redis:latest
+  -e REDIS_URL=redis://localhost:6379 \
+  -e NO_CACHE=true \
+  ghcr.io/9000000/tmdb-addon:latest
 ```
 
 - docker compose
