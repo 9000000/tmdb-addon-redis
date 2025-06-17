@@ -25,11 +25,12 @@ The easiest way to run this addon is using Docker. The image is available on Doc
 docker run -d \
   --name tmdb-addon \
   -p 1337:1337 \
-  -e MONGODB_URI=your_mongodb_uri \
   -e FANART_API=your_fanart_key \
   -e TMDB_API=your_tmdb_key \
   -e HOST_NAME=http://your_domain:1337 \
-  mrcanelas/tmdb-addon:latest
+  -e REDIS_URL=redis://localhost:6379 \
+  -e NO_CACHE=true \
+  ghcr.io/9000000/tmdb-addon:latest
 ```
 
 ### Using Docker Compose
@@ -40,15 +41,16 @@ Create a `docker-compose.yml` file:
 version: '3'
 services:
   tmdb-addon:
-    image: mrcanelas/tmdb-addon:latest
+    image: ghcr.io/9000000/tmdb-addon:latest
     container_name: tmdb-addon
     ports:
       - "1337:1337"
     environment:
-      - MONGODB_URI=your_mongodb_uri
       - FANART_API=your_fanart_key
       - TMDB_API=your_tmdb_key
-      - HOST_NAME=http://your_domain:1337
+      - HOST_NAME=http://localhost:1337
+      - REDIS_URL=redis://localhost:6379
+      - NO_CACHE=true
     restart: unless-stopped
 ```
 
