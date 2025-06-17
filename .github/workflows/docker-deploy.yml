@@ -51,13 +51,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build and push Docker image to both GHCR and Docker Hub
-      - name: Build and push Docker image to GHCR
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/tmdb-addon:${{ env.TAG }}
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/tmdb-addon:latest
-            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/tmdb-addon:${{ env.TAG }}
-            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/tmdb-addon:latest
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/tmdb-addon-redis:${{ env.TAG }}
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/tmdb-addon-redis:latest
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/tmdb-addon-redis:${{ env.TAG }}
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/tmdb-addon-redis:latest
