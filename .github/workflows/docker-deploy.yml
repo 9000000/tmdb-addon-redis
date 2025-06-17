@@ -1,4 +1,4 @@
-name: Deploy Docker image to GitHub Container Registry
+name: Deploy Docker image to GitHub Container Registry and Docker Hub
 
 on:
   push:
@@ -14,9 +14,11 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Determine tag name
       - name: Set tag name
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
@@ -25,12 +27,15 @@ jobs:
             echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
           fi
 
+      # Set up QEMU for multi-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
+      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Log in to GitHub Container Registry (GHCR)
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -38,11 +43,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image to GHCR
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Build and push Docker image to both GHCR and Docker Hub
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/tmdb-addon:${{ env.TAG }}
-            ghcr.io/${{ github.repository_owner }}/tmdb-addon:latest
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/tmdb-addon-redis:${{ env.TAG }}
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/tmdb-addon-redis:latest
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/tmdb-addon-redis:${{ env.TAG }}
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/tmdb-addon-redis:latest
