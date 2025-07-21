@@ -3,7 +3,7 @@ name: Deploy Docker image to GitHub Container Registry
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   docker:
@@ -32,4 +32,4 @@ jobs:
           file: ./Dockerfile         # Explicit Dockerfile path
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/tmdb-addon:dev
+          tags: ghcr.io/${{ github.repository_owner }}/tmdb-addon:latest
