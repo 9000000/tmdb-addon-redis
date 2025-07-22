@@ -94,7 +94,7 @@ function parseGenreLink(genres, type, language) {
   return genres.map((genre) => ({
     name: genre.name,
     category: "Genres",
-    url: `stremio:///discover/${type}/tmdb.top?genre=${encodeURIComponent(genre.name)}&language=${language}`,
+    url: `stremio:///discover/${encodeURIComponent(process.env.HOST_NAME)}%2F${language}%2Fmanifest.json/${type}/tmdb.top?genre=${encodeURIComponent(genre.name)}`,
   }));
 }
 

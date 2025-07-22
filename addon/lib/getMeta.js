@@ -87,8 +87,8 @@ async function buildMovieResponse(movieData, language, config) {
     getImdbRating(imdbId, 'movie')
   ]);
   const imdbRating = imdbRatingValue || movieData.vote_average?.toFixed(1) || "N/A";
-  const tmdbPosterFullUrl = `https://image.tmdb.org/t/p/w500${poster_path}`;
-
+  const fallbackPosterUrl = `https://image.tmdb.org/t/p/w500${poster_path}`;
+  const posterProxyUrl = `https://${process.env.HOST_NAME}/poster/movie/tmdb:${movieData.id}?fallback=${encodeURIComponent(fallbackPosterUrl)}&lang=${language}&key=${config.rpdbkey}`;
   return {
     id: `tmdb:${tmdbId}`,
     type: 'movie',
@@ -104,7 +104,7 @@ async function buildMovieResponse(movieData, language, config) {
     runtime: Utils.parseRunTime(movieData.runtime),
     country: Utils.parseCoutry(movieData.production_countries),
     imdbRating,
-    poster: await Utils.parsePoster('movie', { tmdbId }, tmdbPosterFullUrl, language, config.rpdbkey),
+    poster: config.rpdbkey ? posterProxyUrl : fallbackPosterUrl,
     background: `https://image.tmdb.org/t/p/original${movieData.backdrop_path}`,
     logo: processLogo(logoUrl),
     trailers: Utils.parseTrailers(movieData.videos),
@@ -139,8 +139,8 @@ async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, con
   ]);
   const imdbRating = imdbRatingValue || (tvdbShow.score > 0 ? tvdbShow.score.toFixed(1) : "N/A");
 
-  const tvdbPosterFullUrl = tvdbPosterPath ? `${TVDB_IMAGE_BASE}${tvdbPosterPath}` : null;
-
+  const fallbackPosterUrl = tvdbPosterPath ? `${TVDB_IMAGE_BASE}${tvdbPosterPath}` : `https://artworks.thetvdb.com/banners/images/missing/series.jpg`;
+  const posterProxyUrl = `https://${process.env.HOST_NAME}/poster/series/tvdb:${tvdbShow.id}?fallback=${encodeURIComponent(fallbackPosterUrl)}&lang=${language}&key=${config.rpdbkey}`;
   const tmdbLikeCredits = {
     cast: (characters || []).map(c => ({
       name: c.personName,
@@ -177,7 +177,7 @@ async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, con
     status: tvdbShow.status?.name,
     country: tvdbShow.originalCountry,
     imdbRating,
-    poster: await Utils.parsePoster('series', { tmdbId, tvdbId }, tvdbPosterFullUrl, language, config.rpdbkey),
+    poster: config.rpdbkey ? posterProxyUrl : fallbackPosterUrl,
     background: tvdbShow.artworks?.find(a => a.type === 2)?.image, 
     logo: processLogo(logoUrl),
     videos: videos,

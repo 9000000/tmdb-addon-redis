@@ -32,11 +32,12 @@ async function parseTvdbSearchResult(extendedRecord, language, config) {
   const tmdbId = extendedRecord.remoteIds?.find(id => id.sourceName === 'TheMovieDB')?.id;
   const tvdbId = extendedRecord.id;
   var fallbackImage = extendedRecord.image === null ? "https://artworks.thetvdb.com/banners/images/missing/series.jpg" : extendedRecord.image;
+  const posterProxyUrl = `https://${process.env.HOST_NAME}/poster/series/tvdb:${tvdbId}?fallback=${encodeURIComponent(fallbackImage)}&lang=${language}&key=${config.rpdbkey}`;
   return {
     id: `tvdb:${extendedRecord.id}`,
     type: 'series',
     name: translatedName, 
-    poster: extendedRecord.image === null ? fallbackImage : await Utils.parsePoster('series', { tmdbId, tvdbId }, fallbackImage, language, config.rpdbkey),
+    poster: config.rpdbkey ? posterProxyUrl : fallbackImage,
     year: extendedRecord.year,
     description: overview
   };
@@ -66,7 +67,8 @@ async function performMovieSearch(query, language, config, genreList) {
         const parsed = Utils.parseMedia(media, 'movie', genreList);
         console.log("parsed media: " +media.poster_path);
         const tmdbPosterFullUrl = media.poster_path === null ? `https://artworks.thetvdb.com/banners/images/missing/series.jpg` : `https://image.tmdb.org/t/p/w500${media.poster_path}`;
-        parsed.poster = media.poster_path === null ? tmdbPosterFullUrl : await Utils.parsePoster('movie', { tmdbId: media.id }, tmdbPosterFullUrl, language, config.rpdbkey);
+        const posterProxyUrl = `https://${process.env.HOST_NAME}/poster/movie/tmdb:${media.id}?fallback=${encodeURIComponent(tmdbPosterFullUrl)}&lang=${language}&key=${config.rpdbkey}`;
+        parsed.poster = config.rpdbkey ? posterProxyUrl : tmdbPosterFullUrl;
         return parsed;
     });
 

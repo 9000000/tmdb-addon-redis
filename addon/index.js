@@ -13,6 +13,7 @@ const { parseConfig, getRpdbPoster, checkIfExists } = require("./utils/parseProp
 const { getRequestToken, getSessionId } = require("./lib/getSession");
 const { getFavorites, getWatchList } = require("./lib/getPersonalLists");
 const { blurImage } = require('./utils/imageProcessor');
+const axios = require('axios');
 
 addon.use(analytics.middleware);
 addon.use(favicon(path.join(__dirname, '../public/favicon.png')));
@@ -129,6 +130,44 @@ addon.get("/:catalogChoices?/meta/:type/:id.json", async function (req, res) {
     res.status(500).send("Internal Server Error");
   }
 });
+
+
+addon.get("/poster/:type/:id", async function (req, res) {
+  const { type, id } = req.params;
+  const { fallback, lang, key } = req.query;
+  console.log("poster hit, yaay");
+  if (!key) {
+    return res.redirect(302, fallback);
+  }
+
+  const [idSource, idValue] = id.split(':');
+  const ids = {
+    tmdbId: idSource === 'tmdb' ? idValue : null,
+    tvdbId: idSource === 'tvdb' ? idValue : null
+  };
+
+  try {
+    const rpdbUrl = getRpdbPoster(type, ids, lang, key);
+
+    if (rpdbUrl && await checkIfExists(rpdbUrl)) {
+      console.log("Success! Pipe the image from RPDB directly to the user.");
+      const imageResponse = await axios({
+        method: 'get',
+        url: rpdbUrl,
+        responseType: 'stream'
+      });
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+      imageResponse.data.pipe(res);
+    } else {
+      res.redirect(302, fallback);
+    }
+  } catch (error) {
+    console.error(`Error in poster proxy for ${id}:`, error.message);
+    res.redirect(302, fallback);
+  }
+});
+
 
 // --- Image Blur Route ---
 addon.get("/api/image/blur", async function (req, res) {
