@@ -186,7 +186,7 @@ function getRpdbPoster(type, ids, language, rpdbkey) {
     }
 
     const urlPath = `${baseUrl}/${rpdbkey}/${idType}/poster-default/${fullMediaId}.jpg`;
-    console.log(urlPath);
+    //console.log(urlPath);
     if (tier === "t0" || tier === "t1" || lang === "en") {
         return `${urlPath}?fallback=true`;
     } else {
@@ -195,17 +195,31 @@ function getRpdbPoster(type, ids, language, rpdbkey) {
 }
 
 async function checkIfExists(url) {
-  try { await axios.head(url); return true; } catch (error) { return false; }
+  try {
+    const response = await axios.head(url, {
+      maxRedirects: 0,
+      validateStatus: () => true,
+      headers: { 'User-Agent': 'AIOMetadataAddon/1.0' }
+    });
+    return response.status === 200;
+  } catch (error) {
+    if (error.message.includes('Invalid URL')) {
+      return false;
+    }
+    console.error(`Network error in checkIfExists for URL ${url}:`, error.message);
+    return false;
+  }
 }
 
 async function parsePoster(type, ids, fallbackFullUrl, language, rpdbkey) {
   if (rpdbkey) {
     const rpdbImage = getRpdbPoster(type, ids, language, rpdbkey);
-    console.log(rpdbImage);
+    //console.log(rpdbImage);
     if (rpdbImage && await checkIfExists(rpdbImage)) {
       return rpdbImage;
     }
   }
+  console.log("fallback:" + fallbackFullUrl);
   return fallbackFullUrl;
 }
 

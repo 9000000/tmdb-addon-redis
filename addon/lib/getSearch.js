@@ -31,11 +31,12 @@ async function parseTvdbSearchResult(extendedRecord, language, config) {
   
   const tmdbId = extendedRecord.remoteIds?.find(id => id.sourceName === 'TheMovieDB')?.id;
   const tvdbId = extendedRecord.id;
+  var fallbackImage = extendedRecord.image === null ? "https://artworks.thetvdb.com/banners/images/missing/series.jpg" : extendedRecord.image;
   return {
     id: `tvdb:${extendedRecord.id}`,
     type: 'series',
     name: translatedName, 
-    poster: await Utils.parsePoster('series', { tmdbId, tvdbId }, extendedRecord.image, language, config.rpdbkey),
+    poster: extendedRecord.image === null ? fallbackImage : await Utils.parsePoster('series', { tmdbId, tvdbId }, fallbackImage, language, config.rpdbkey),
     year: extendedRecord.year,
     description: overview
   };
@@ -63,7 +64,9 @@ async function performMovieSearch(query, language, config, genreList) {
 
     const hydrationPromises = Array.from(rawResults.values()).map(async (media) => {
         const parsed = Utils.parseMedia(media, 'movie', genreList);
-        parsed.poster = await Utils.parsePoster('movie', { tmdbId: media.id }, media.poster_path, language, config.rpdbkey);
+        console.log("parsed media: " +media.poster_path);
+        const tmdbPosterFullUrl = media.poster_path === null ? `https://artworks.thetvdb.com/banners/images/missing/series.jpg` : `https://image.tmdb.org/t/p/w500${media.poster_path}`;
+        parsed.poster = media.poster_path === null ? tmdbPosterFullUrl : await Utils.parsePoster('movie', { tmdbId: media.id }, tmdbPosterFullUrl, language, config.rpdbkey);
         return parsed;
     });
 
@@ -124,6 +127,7 @@ async function getSearch(id, type, language, query, config) {
       // sanitize movie search query as well for consistency
       const sanitizedQuery = sanitizeQuery(query);
       metas = await performMovieSearch(sanitizedQuery, language, config, genreList);
+      console.log(metas);
     } else {
       metas = await performSeriesSearch(query, language, config);
     }

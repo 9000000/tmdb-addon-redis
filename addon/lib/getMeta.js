@@ -55,7 +55,6 @@ async function getSeriesMeta(stremioId, language, config) {
     if (!tmdbIdToFind) throw new Error(`Could not resolve ${stremioId} to a TMDB ID.`);
     
     const tmdbInfo = await moviedb.tvInfo({ id: tmdbIdToFind, append_to_response: 'external_ids' });
-    console.log(tmdbInfo);
     tvdbId = tmdbInfo.external_ids?.tvdb_id;
   }
 

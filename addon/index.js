@@ -89,18 +89,6 @@ addon.get("/:catalogChoices?/catalog/:type/:id/:extra?.json", async function (re
       }
     }
     
-    if (config.rpdbkey) {
-      try {
-        metas.metas = await Promise.all(metas.metas.map(async (el) => {
-          const idToUse = (el.id || '').replace(/tmdb:|tt|tvdb:/g, '');
-          if (!idToUse) return el;
-          const rpdbImage = getRpdbPoster(type, idToUse, language, config.rpdbkey);
-          el.poster = await checkIfExists(rpdbImage) ? rpdbImage : el.poster;
-          return el;
-        }))
-      } catch (e) { console.error("Error replacing posters:", e); }
-    }
-    
     const cacheOpts = { cacheMaxAge: 1 * 60 * 60, staleRevalidate: 24 * 60 * 60 };
     respond(res, metas, cacheOpts);
 
