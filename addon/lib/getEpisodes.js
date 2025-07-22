@@ -4,6 +4,10 @@ const moviedb = new MovieDb(process.env.TMDB_API);
 const diferentOrder = require("../static/diferentOrder.json");
 const diferentImdbId = require("../static/diferentImdbId.json");
 
+const host = process.env.HOST_NAME.startsWith('http')
+    ? process.env.HOST_NAME
+    : `https://${process.env.HOST_NAME}`;
+
 function genSeasonsString(seasons) {
   if (seasons.length <= 20) {
     return [
@@ -25,7 +29,7 @@ function getThumbnailUrl(stillPath, hideEpisodeThumbnails) {
   const baseImageUrl = `https://image.tmdb.org/t/p/w500${stillPath}`;
   
   if (hideEpisodeThumbnails) {
-    return `${process.env.HOST_NAME}/api/image/blur?url=${encodeURIComponent(baseImageUrl)}`;
+    return `${host}/api/image/blur?url=${encodeURIComponent(baseImageUrl)}`;
   }
   
   return baseImageUrl;

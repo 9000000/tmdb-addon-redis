@@ -13,6 +13,9 @@ const processLogo = (logoUrl) => {
   if (!logoUrl) return null;
   return logoUrl.replace(/^http:/, "https:");
 };
+const host = process.env.HOST_NAME.startsWith('http')
+    ? process.env.HOST_NAME
+    : `https://${process.env.HOST_NAME}`;
 
 // --- Main Orchestrator ---
 async function getMeta(type, language, stremioId, config = {}) {
@@ -46,7 +49,6 @@ async function getMovieMeta(stremioId, language, config) {
 // --- Series Worker (TVDB Version) ---
 async function getSeriesMeta(stremioId, language, config) {
   let tvdbId;
-  console.log(stremioId);
   if (stremioId.startsWith('tvdb:')) {
     tvdbId = stremioId.split(':')[1];
   } else {
@@ -88,7 +90,7 @@ async function buildMovieResponse(movieData, language, config) {
   ]);
   const imdbRating = imdbRatingValue || movieData.vote_average?.toFixed(1) || "N/A";
   const fallbackPosterUrl = `https://image.tmdb.org/t/p/w500${poster_path}`;
-  const posterProxyUrl = `https://${process.env.HOST_NAME}/poster/movie/tmdb:${movieData.id}?fallback=${encodeURIComponent(fallbackPosterUrl)}&lang=${language}&key=${config.rpdbkey}`;
+  const posterProxyUrl = `${host}/poster/movie/tmdb:${movieData.id}?fallback=${encodeURIComponent(fallbackPosterUrl)}&lang=${language}&key=${config.rpdbkey}`;
   return {
     id: `tmdb:${tmdbId}`,
     type: 'movie',
@@ -139,8 +141,8 @@ async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, con
   ]);
   const imdbRating = imdbRatingValue || (tvdbShow.score > 0 ? tvdbShow.score.toFixed(1) : "N/A");
 
-  const fallbackPosterUrl = tvdbPosterPath ? `${TVDB_IMAGE_BASE}${tvdbPosterPath}` : `https://artworks.thetvdb.com/banners/images/missing/series.jpg`;
-  const posterProxyUrl = `https://${process.env.HOST_NAME}/poster/series/tvdb:${tvdbShow.id}?fallback=${encodeURIComponent(fallbackPosterUrl)}&lang=${language}&key=${config.rpdbkey}`;
+  const fallbackPosterUrl = tvdbPosterPath ? `${tvdbPosterPath}` : `https://artworks.thetvdb.com/banners/images/missing/series.jpg`;
+  const posterProxyUrl = `${host}/poster/series/tvdb:${tvdbShow.id}?fallback=${encodeURIComponent(fallbackPosterUrl)}&lang=${language}&key=${config.rpdbkey}`;
   const tmdbLikeCredits = {
     cast: (characters || []).map(c => ({
       name: c.personName,
@@ -161,7 +163,6 @@ async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, con
       released: episode.aired ? new Date(episode.aired) : null,
       available: episode.aired ? new Date(episode.aired) < new Date() : false,
   })); 
-
   const meta = {
     id: tmdbId ? `tmdb:${tmdbId}` : `tvdb:${tvdbId}`,
     type: 'series',

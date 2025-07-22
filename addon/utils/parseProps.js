@@ -90,12 +90,24 @@ function parseShareLink(title, imdb_id, type) {
 }
 
 function parseGenreLink(genres, type, language) {
-  if (!Array.isArray(genres)) return [];
-  return genres.map((genre) => ({
-    name: genre.name,
-    category: "Genres",
-    url: `stremio:///discover/${encodeURIComponent(process.env.HOST_NAME)}%2F${language}%2Fmanifest.json/${type}/tmdb.top?genre=${encodeURIComponent(genre.name)}`,
-  }));
+  if (!Array.isArray(genres) || !process.env.HOST_NAME) return [];
+
+  const host = process.env.HOST_NAME.startsWith('http')
+    ? process.env.HOST_NAME
+    : `https://${process.env.HOST_NAME}`;
+
+  return genres.map((genre) => {
+    if (!genre || !genre.name) return null;
+    return {
+      name: genre.name,
+      category: "Genres",
+      url: `stremio:///discover/${encodeURIComponent(
+        `${host}/${language}/manifest.json`
+      )}/${type}/tmdb.top?genre=${encodeURIComponent(
+        genre.name
+      )}`,
+    };
+  }).filter(Boolean);
 }
 
 function parseCreditsLink(credits, castCount) {
@@ -112,7 +124,7 @@ function parseCreditsLink(credits, castCount) {
   return [...Cast, ...Director, ...Writer];
 }
 
-function buildLinks(imdbRating, imdbId, title, type, genres, credits, language, castCount) {
+function buildLinks(imdbRating, imdbId, title, type, genres, credits, language, castCount, config) {
   if (!imdbId) return [];
   return [
     parseImdbLink(imdbRating, imdbId),

@@ -12,7 +12,9 @@ function sanitizeQuery(query) {
   return query.replace(/[\[\]()!?]/g, ' ').replace(/[:.-]/g, ' ').trim().replace(/\s\s+/g, ' ');
 }
 
-
+const host = process.env.HOST_NAME.startsWith('http')
+    ? process.env.HOST_NAME
+    : `https://${process.env.HOST_NAME}`;
 
 async function parseTvdbSearchResult(extendedRecord, language, config) {
   if (!extendedRecord || !extendedRecord.id || !extendedRecord.name) return null;
@@ -32,7 +34,7 @@ async function parseTvdbSearchResult(extendedRecord, language, config) {
   const tmdbId = extendedRecord.remoteIds?.find(id => id.sourceName === 'TheMovieDB')?.id;
   const tvdbId = extendedRecord.id;
   var fallbackImage = extendedRecord.image === null ? "https://artworks.thetvdb.com/banners/images/missing/series.jpg" : extendedRecord.image;
-  const posterProxyUrl = `https://${process.env.HOST_NAME}/poster/series/tvdb:${tvdbId}?fallback=${encodeURIComponent(fallbackImage)}&lang=${language}&key=${config.rpdbkey}`;
+  const posterProxyUrl = `${host}/poster/series/tvdb:${tvdbId}?fallback=${encodeURIComponent(fallbackImage)}&lang=${language}&key=${config.rpdbkey}`;
   return {
     id: `tvdb:${extendedRecord.id}`,
     type: 'series',
@@ -67,7 +69,7 @@ async function performMovieSearch(query, language, config, genreList) {
         const parsed = Utils.parseMedia(media, 'movie', genreList);
         console.log("parsed media: " +media.poster_path);
         const tmdbPosterFullUrl = media.poster_path === null ? `https://artworks.thetvdb.com/banners/images/missing/series.jpg` : `https://image.tmdb.org/t/p/w500${media.poster_path}`;
-        const posterProxyUrl = `https://${process.env.HOST_NAME}/poster/movie/tmdb:${media.id}?fallback=${encodeURIComponent(tmdbPosterFullUrl)}&lang=${language}&key=${config.rpdbkey}`;
+        const posterProxyUrl = `${host}/poster/movie/tmdb:${media.id}?fallback=${encodeURIComponent(tmdbPosterFullUrl)}&lang=${language}&key=${config.rpdbkey}`;
         parsed.poster = config.rpdbkey ? posterProxyUrl : tmdbPosterFullUrl;
         return parsed;
     });
