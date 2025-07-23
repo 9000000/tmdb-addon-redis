@@ -9,7 +9,7 @@ const { getMeta } = require("./getMeta");
 const moviedb = new MovieDb(process.env.TMDB_API);
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
-async function getCatalog(type, language, page, id, genre, config) {
+async function getCatalog(type, language, page, id, genre, config, catalogChoices) {
   try {
     if (id.startsWith("mdblist.")) {
       const listId = id.split(".")[1];
@@ -27,7 +27,7 @@ async function getCatalog(type, language, page, id, genre, config) {
     const res = await fetchFunction(parameters);
 
     const metaPromises = res.results.map(item => 
-      getMeta(type, language, `tmdb:${item.id}`, config)
+      getMeta(type, language, `tmdb:${item.id}`, config, catalogChoices)
         .then(result => result.meta)
         .catch(err => {
           console.error(`Error fetching metadata for tmdb:${item.id}:`, err.message);
@@ -36,7 +36,6 @@ async function getCatalog(type, language, page, id, genre, config) {
     );
 
     const metas = (await Promise.all(metaPromises)).filter(Boolean);
-
     return { metas };
 
   } catch (error) {
@@ -82,6 +81,7 @@ async function buildParameters(type, language, page, id, genre, genreList, confi
   } else {
     switch (id) {
       case "tmdb.top":
+        console.log("im activated");
         parameters.with_genres = genre ? findGenreId(genre, genreList) : undefined;
         if (type === "series") {
           parameters.watch_region = language.split("-")[1];

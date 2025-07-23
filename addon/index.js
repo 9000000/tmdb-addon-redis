@@ -83,10 +83,10 @@ addon.get("/:catalogChoices?/catalog/:type/:id/:extra?.json", async function (re
       metas = await getSearch(id, type, language, search, config);
     } else {
       switch (id) {
-        case "tmdb.trending": metas = await getTrending(...args, genre, config); break;
+        case "tmdb.trending": metas = await getTrending(...args, genre, config, catalogChoices); break;
         case "tmdb.favorites": metas = await getFavorites(...args, genre, sessionId); break;
         case "tmdb.watchlist": metas = await getWatchList(...args, genre, sessionId); break;
-        default: metas = await getCatalog(...args, id, genre, config); break;
+        default: metas = await getCatalog(...args, id, genre, config, catalogChoices); break;
       }
     }
     
@@ -108,7 +108,7 @@ addon.get("/:catalogChoices?/meta/:type/:id.json", async function (req, res) {
 
   try {
     const result = await cacheWrapMeta(stremioId, async () => {
-      return await getMeta(type, language, stremioId, fullConfig);
+      return await getMeta(type, language, stremioId, fullConfig, catalogChoices);
     });
 
     if (!result || !result.meta) {

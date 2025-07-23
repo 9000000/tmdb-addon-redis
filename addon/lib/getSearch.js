@@ -131,7 +131,7 @@ async function getSearch(id, type, language, query, config) {
       // sanitize movie search query as well for consistency
       const sanitizedQuery = sanitizeQuery(query);
       metas = await performMovieSearch(sanitizedQuery, language, config, genreList);
-      console.log(metas);
+      //console.log(metas);
     } else {
       metas = await performSeriesSearch(query, language, config);
     }

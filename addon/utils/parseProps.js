@@ -89,12 +89,13 @@ function parseShareLink(title, imdb_id, type) {
   };
 }
 
-function parseGenreLink(genres, type, language) {
+function parseGenreLink(genres, type, configString) { // Renamed for clarity
   if (!Array.isArray(genres) || !process.env.HOST_NAME) return [];
 
   const host = process.env.HOST_NAME.startsWith('http')
     ? process.env.HOST_NAME
     : `https://${process.env.HOST_NAME}`;
+  const manifestPath = configString ? `${configString}/manifest.json` : 'manifest.json';
 
   return genres.map((genre) => {
     if (!genre || !genre.name) return null;
@@ -102,7 +103,7 @@ function parseGenreLink(genres, type, language) {
       name: genre.name,
       category: "Genres",
       url: `stremio:///discover/${encodeURIComponent(
-        `${host}/${language}/manifest.json`
+        `${host}/${manifestPath}` 
       )}/${type}/tmdb.top?genre=${encodeURIComponent(
         genre.name
       )}`,
@@ -124,12 +125,12 @@ function parseCreditsLink(credits, castCount) {
   return [...Cast, ...Director, ...Writer];
 }
 
-function buildLinks(imdbRating, imdbId, title, type, genres, credits, language, castCount, config) {
+function buildLinks(imdbRating, imdbId, title, type, genres, credits, language, castCount, catalogChoices) {
   if (!imdbId) return [];
   return [
     parseImdbLink(imdbRating, imdbId),
     parseShareLink(title, imdbId, type),
-    ...parseGenreLink(genres, type, language),
+    ...parseGenreLink(genres, type, catalogChoices),
     ...parseCreditsLink(credits, castCount)
   ].filter(Boolean);
 }

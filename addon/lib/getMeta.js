@@ -18,13 +18,13 @@ const host = process.env.HOST_NAME.startsWith('http')
     : `https://${process.env.HOST_NAME}`;
 
 // --- Main Orchestrator ---
-async function getMeta(type, language, stremioId, config = {}) {
+async function getMeta(type, language, stremioId, config = {}, catalogChoices) {
   try {
     let meta;
     if (type === 'movie') {
-      meta = await getMovieMeta(stremioId, language, config);
+      meta = await getMovieMeta(stremioId, language, config, catalogChoices);
     } else { 
-      meta = await getSeriesMeta(stremioId, language, config);
+      meta = await getSeriesMeta(stremioId, language, config, catalogChoices);
     }
     return { meta };
   } catch (error) {
@@ -34,7 +34,7 @@ async function getMeta(type, language, stremioId, config = {}) {
 }
 
 // --- Movie Worker ---
-async function getMovieMeta(stremioId, language, config) {
+async function getMovieMeta(stremioId, language, config, catalogChoices) {
   let tmdbId = stremioId.replace('tmdb:', '');
   if (stremioId.startsWith('tt')) {
     const findResults = await moviedb.find({ id: stremioId, external_source: 'imdb_id' });
@@ -43,11 +43,11 @@ async function getMovieMeta(stremioId, language, config) {
     tmdbId = movieTmdb.id;
   }
   const movieData = await moviedb.movieInfo({ id: tmdbId, language, append_to_response: "videos,credits,external_ids" });
-  return buildMovieResponse(movieData, language, config);
+  return buildMovieResponse(movieData, language, config, catalogChoices);
 }
 
 // --- Series Worker (TVDB Version) ---
-async function getSeriesMeta(stremioId, language, config) {
+async function getSeriesMeta(stremioId, language, config, catalogChoices) {
   let tvdbId;
   if (stremioId.startsWith('tvdb:')) {
     tvdbId = stremioId.split(':')[1];
@@ -74,13 +74,13 @@ async function getSeriesMeta(stremioId, language, config) {
     throw new Error(`Could not fetch complete data for TVDB ID ${tvdbId}.`);
   }
 
-  return buildSeriesResponseFromTvdb(baseData, episodesData, language, config);
+  return buildSeriesResponseFromTvdb(baseData, episodesData, language, config, catalogChoices);
 }
 
 
 // --- BUILDERS ---
 
-async function buildMovieResponse(movieData, language, config) {
+async function buildMovieResponse(movieData, language, config, catalogChoices) {
   const { id: tmdbId, title, external_ids, poster_path, credits } = movieData;
   const imdbId = external_ids?.imdb_id;
   const castCount = config.castCount === 'unlimited' ? undefined : ([5, 10, 15].includes(config.castCount) ? config.castCount : 5);
@@ -91,6 +91,7 @@ async function buildMovieResponse(movieData, language, config) {
   const imdbRating = imdbRatingValue || movieData.vote_average?.toFixed(1) || "N/A";
   const fallbackPosterUrl = `https://image.tmdb.org/t/p/w500${poster_path}`;
   const posterProxyUrl = `${host}/poster/movie/tmdb:${movieData.id}?fallback=${encodeURIComponent(fallbackPosterUrl)}&lang=${language}&key=${config.rpdbkey}`;
+  //console.log(Utils.parseCast(credits, castCount));
   return {
     id: `tmdb:${tmdbId}`,
     type: 'movie',
@@ -111,13 +112,13 @@ async function buildMovieResponse(movieData, language, config) {
     logo: processLogo(logoUrl),
     trailers: Utils.parseTrailers(movieData.videos),
     trailerStreams: Utils.parseTrailerStream(movieData.videos),
-    links: Utils.buildLinks(imdbRating, imdbId, title, 'movie', movieData.genres, credits, language, castCount),
+    links: Utils.buildLinks(imdbRating, imdbId, title, 'movie', movieData.genres, credits, language, castCount, catalogChoices),
     behaviorHints: { defaultVideoId: imdbId || `tmdb:${tmdbId}`, hasScheduledVideos: false },
     app_extras: { cast: Utils.parseCast(credits, castCount) }
   };
 }
 
-async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, config) {
+async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, config, catalogChoices) {
   const { year, image: tvdbPosterPath, remoteIds, characters, episodes } = tvdbShow;
   const langCode = language.split('-')[0];
   const langCode3 = await to3LetterCode(langCode);
@@ -163,6 +164,7 @@ async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, con
       released: episode.aired ? new Date(episode.aired) : null,
       available: episode.aired ? new Date(episode.aired) < new Date() : false,
   })); 
+  //console.log(tvdbShow.artworks?.find(a => a.type === 2)?.image);
   const meta = {
     id: tmdbId ? `tmdb:${tmdbId}` : `tvdb:${tvdbId}`,
     type: 'series',
@@ -182,11 +184,11 @@ async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, con
     background: tvdbShow.artworks?.find(a => a.type === 2)?.image, 
     logo: processLogo(logoUrl),
     videos: videos,
-    links: Utils.buildLinks(imdbRating, imdbId, translatedName, 'series', tvdbShow.genres, tmdbLikeCredits, language, castCount),
+    links: Utils.buildLinks(imdbRating, imdbId, translatedName, 'series', tvdbShow.genres, tmdbLikeCredits, language, castCount, catalogChoices),
     behaviorHints: { defaultVideoId: null, hasScheduledVideos: true },
     app_extras: { cast: Utils.parseCast(tmdbLikeCredits, castCount) }
   };
-
+  //console.log(Utils.parseCast(tmdbLikeCredits, castCount));
   return meta;
 }
 

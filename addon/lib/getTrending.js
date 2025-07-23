@@ -4,7 +4,7 @@ const { getMeta } = require("./getMeta");
 
 const moviedb = new MovieDb(process.env.TMDB_API);
 
-async function getTrending(type, language, page, genre, config) {
+async function getTrending(type, language, page, genre, config, catalogChoices) {
   try {
     const media_type = type === "series" ? "tv" : type;
     const time_window = genre && ['day', 'week'].includes(genre.toLowerCase()) ? genre.toLowerCase() : "day";
@@ -14,7 +14,7 @@ async function getTrending(type, language, page, genre, config) {
     const res = await moviedb.trending(parameters);
 
     const metaPromises = res.results.map(item => 
-      getMeta(type, language, `tmdb:${item.id}`, config)
+      getMeta(type, language, `tmdb:${item.id}`, config, catalogChoices)
         .then(result => result.meta)
         .catch(err => {
           console.error(`Error fetching metadata for tmdb:${item.id}:`, err.message);
