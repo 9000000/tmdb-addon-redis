@@ -181,7 +181,7 @@ async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, con
     country: tvdbShow.originalCountry,
     imdbRating,
     poster: config.rpdbkey ? posterProxyUrl : fallbackPosterUrl,
-    background: tvdbShow.artworks?.find(a => a.type === 2)?.image, 
+    background: tvdbShow.artworks?.find(a => a.type === 3)?.image, 
     logo: processLogo(logoUrl),
     videos: videos,
     links: Utils.buildLinks(imdbRating, imdbId, translatedName, 'series', tvdbShow.genres, tmdbLikeCredits, language, castCount, catalogChoices),
