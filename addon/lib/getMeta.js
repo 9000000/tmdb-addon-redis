@@ -154,16 +154,23 @@ async function buildSeriesResponseFromTvdb(tvdbShow, tvdbEpisodes, language, con
   };
 
   const videos = (tvdbEpisodes.episodes || [])
-    .map(episode => ({
-      id: `${imdbId || `tvdb${tvdbId}`}:${episode.seasonNumber}:${episode.number}`,
-      title: episode.name || `Episode ${episode.number}`,
-      season: episode.seasonNumber,
-      episode: episode.number,
-      thumbnail: episode.image ? `${TVDB_IMAGE_BASE}${episode.image}` : null,
-      overview: episode.overview,
-      released: episode.aired ? new Date(episode.aired) : null,
-      available: episode.aired ? new Date(episode.aired) < new Date() : false,
-  })); 
+    .map(episode => {
+        const thumbnailUrl = episode.image ? `${TVDB_IMAGE_BASE}${episode.image}` : null;
+        const finalThumbnail = config.hideEpisodeThumbnails && thumbnailUrl
+            ? `${host}/api/image/blur?url=${encodeURIComponent(thumbnailUrl)}`
+            : thumbnailUrl;
+
+        return {
+            id: `${imdbId || `tvdb${tvdbId}`}:${episode.seasonNumber}:${episode.number}`,
+            title: episode.name || `Episode ${episode.number}`,
+            season: episode.seasonNumber,
+            episode: episode.number,
+            thumbnail: finalThumbnail, 
+            overview: episode.overview,
+            released: episode.aired ? new Date(episode.aired) : null,
+            available: episode.aired ? new Date(episode.aired) < new Date() : false,
+        };
+    });
   //console.log(tvdbShow.artworks?.find(a => a.type === 2)?.image);
   const meta = {
     id: tmdbId ? `tmdb:${tmdbId}` : `tvdb:${tvdbId}`,
