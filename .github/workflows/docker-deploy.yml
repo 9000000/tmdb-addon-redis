@@ -25,6 +25,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v6
         with:
@@ -32,4 +39,8 @@ jobs:
           file: ./Dockerfile         # Explicit Dockerfile path
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/tmdb-addon-redis:latest
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/tmdb-addon-redis:${{ env.TAG }}
+            ghcr.io/${{ github.repository_owner }}/tmdb-addon-redis:latest
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/tmdb-addon-redis:${{ env.TAG }}
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/tmdb-addon-redis:latest
