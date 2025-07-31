@@ -32,4 +32,4 @@ jobs:
           file: ./Dockerfile         # Explicit Dockerfile path
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/tmdb-addon:latest
+          tags: ghcr.io/${{ github.repository_owner }}/tmdb-addon-redis:latest
